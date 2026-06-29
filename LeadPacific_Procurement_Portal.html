@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Pacific — Procurement Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #FFF7F0;
+  --white:      #FFFFFF;
+  --border:     #F0D8C0;
+  --border2:    #E0B890;
+  --text:       #1A0A00;
+  --sub:        #5C3010;
+  --muted:      #A06030;
+  --orange:     #E06000;
+  --orange-dk:  #B04500;
+  --orange-lt:  #FFF3E8;
+  --orange-md:  #F5C090;
+  --orange-vivid:#FF7020;
+  --green:      #0A7A4A;
+  --green-lt:   #E8F8F1;
+  --green-md:   #A0DDBF;
+  --amber:      #C47A00;
+  --amber-lt:   #FFF8E8;
+  --amber-md:   #F5D990;
+  --red:        #C02020;
+  --red-lt:     #FEF0F0;
+  --red-md:     #F5B8B8;
+  --purple:     #6030A0;
+  --purple-lt:  #F3EEFF;
+  --sans: 'Inter', sans-serif;
+  --shadow-sm: 0 1px 3px rgba(40,15,0,.07), 0 1px 2px rgba(40,15,0,.04);
+  --shadow:    0 4px 14px rgba(40,15,0,.09), 0 2px 4px rgba(40,15,0,.04);
+  --shadow-md: 0 8px 28px rgba(40,15,0,.12), 0 3px 8px rgba(40,15,0,.05);
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+/* ── TOP BAR ── */
+.topbar {
+  height: 62px;
+  background: linear-gradient(135deg, #B04500 0%, #E06000 60%, #FF7020 100%);
+  border-bottom: 2px solid #FF8C40;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(180,70,0,.35);
+}
+.topbar-brand { display: flex; align-items: center; gap: 14px; }
+.brand-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  background: var(--white); display: grid; place-items: center;
+  box-shadow: 0 2px 8px rgba(255,255,255,.25);
+  flex-shrink: 0;
+}
+.brand-icon svg { width: 26px; height: 26px; }
+.brand-name { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.01em; }
+.brand-name span { color: #FFD8A8; }
+.brand-sub { font-size: 11px; color: rgba(255,220,180,.85); font-weight: 400; margin-top: 2px; }
+
+.topbar-pills { display: flex; align-items: center; gap: 8px; }
+.req-pill {
+  font-size: 11px; font-weight: 600; letter-spacing: .01em;
+  padding: 5px 12px; border-radius: 20px;
+  display: flex; align-items: center; gap: 5px; border: 1.5px solid transparent;
+}
+.req-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.req-pill.r1 { background: rgba(255,216,168,.2); color: #FFD8A8; border-color: rgba(255,216,168,.4); }
+.req-pill.r2 { background: rgba(245,217,144,.2); color: #F5D990; border-color: rgba(245,217,144,.4); }
+.req-pill.r3 { background: rgba(160,221,191,.2); color: #A0DDBF; border-color: rgba(160,221,191,.4); }
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: #A0DDBF;
+  background: rgba(10,122,74,.25); border: 1px solid rgba(160,221,191,.35);
+  padding: 4px 10px; border-radius: 20px;
+}
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: #A0DDBF; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(160,221,191,.5);} 50%{box-shadow:0 0 0 5px rgba(160,221,191,0);} }
+.clock { font-size: 12px; font-weight: 600; color: rgba(255,220,180,.8); font-variant-numeric: tabular-nums; }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  background: var(--white); border-bottom: 2px solid var(--border);
+  display: flex; align-items: center; gap: 0; padding: 0 22px;
+  box-shadow: var(--shadow-sm); position: sticky; top: 62px; z-index: 90;
+  overflow-x: auto;
+}
+.nav-tabs::-webkit-scrollbar { height: 0; }
+.nav-tab {
+  padding: 13px 16px; font-size: 12px; font-weight: 600; color: var(--muted);
+  border-bottom: 2.5px solid transparent; cursor: pointer;
+  transition: color .2s, border-color .2s; margin-bottom: -2px;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.nav-tab svg { width: 14px; height: 14px; stroke: currentColor; fill: none; flex-shrink: 0; }
+.nav-tab:hover { color: var(--orange); }
+.nav-tab.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: 700; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: flex; }
+.panel-full { display: none; flex-direction: column; }
+.panel-full.active { display: flex; }
+
+/* ── APP LAYOUT ── */
+.app-body { display: flex; height: calc(100vh - 62px - 46px - 34px); overflow: hidden; }
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  width: 340px; min-width: 280px; flex-shrink: 0;
+  background: var(--white); border-right: 1px solid var(--border);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.left-panel::-webkit-scrollbar { width: 5px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 5px; }
+
+.panel-section { border-bottom: 1px solid var(--border); }
+
+.section-header {
+  padding: 16px 20px 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; color: var(--sub);
+}
+.section-header::after { content:''; flex:1; height:1px; background: var(--border); }
+
+.req-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 4px; text-transform: uppercase;
+}
+.req-badge.r1 { background: var(--orange-lt); color: var(--orange); border: 1px solid var(--orange-md); }
+.req-badge.r2 { background: var(--amber-lt);  color: var(--amber); }
+.req-badge.r3 { background: var(--green-lt);  color: var(--green); }
+.req-badge.r4 { background: var(--purple-lt); color: var(--purple); }
+
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 18px 16px; }
+.kpi-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  position: relative; overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--acc, var(--orange)); border-radius: 10px 10px 0 0; }
+.kpi-card.a { --acc: var(--amber); }
+.kpi-card.g { --acc: var(--green); }
+.kpi-card.r { --acc: var(--red); }
+.kpi-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+.kpi-value { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* SUPPORT ITEMS */
+.support-list { padding: 4px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+.support-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.support-item:hover { border-color: var(--orange-md); box-shadow: var(--shadow-sm); }
+.support-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  background: var(--orange-lt); border: 1px solid var(--orange-md);
+  display: grid; place-items: center; margin-top: 1px;
+}
+.support-icon svg { width: 15px; height: 15px; stroke: var(--orange); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.support-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.support-desc { font-size: 11px; color: var(--sub); line-height: 1.6; }
+.support-tag {
+  margin-left: auto; flex-shrink: 0; align-self: flex-start;
+  font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--orange-lt); color: var(--orange); border: 1px solid var(--orange-md);
+}
+
+/* PO LIST */
+.po-list { padding: 4px 18px 16px; display: flex; flex-direction: column; gap: 6px; }
+.po-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 13px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.po-row:hover { border-color: var(--orange-md); box-shadow: var(--shadow-sm); }
+.po-id { font-size: 11px; font-weight: 700; color: var(--orange); flex-shrink: 0; letter-spacing: .02em; }
+.po-info { flex: 1; }
+.po-item { font-size: 12px; font-weight: 600; color: var(--text); }
+.po-vendor { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.po-amount { font-size: 12px; font-weight: 700; color: var(--text); flex-shrink: 0; text-align: right; }
+.po-status { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 6px; flex-shrink: 0; }
+.po-status.confirmed { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+.po-status.pending   { background: var(--amber-lt); color: var(--amber); border: 1px solid var(--amber-md); }
+.po-status.review    { background: var(--orange-lt); color: var(--orange); border: 1px solid var(--orange-md); }
+.po-status.intransit { background: #EBF1FF; color: #2040A0; border: 1px solid #A0B8F0; }
+
+/* ── RIGHT PANEL ── */
+.right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+.right-panel-inner { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+.right-topbar {
+  padding: 16px 22px 14px; background: var(--white);
+  border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.rt-title { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.rt-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+.add-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--orange); color: #fff; border: none; border-radius: 9px;
+  padding: 10px 20px; font-family: var(--sans); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background .2s, box-shadow .2s;
+  box-shadow: 0 2px 8px rgba(224,96,0,.35);
+}
+.add-btn:hover { background: var(--orange-dk); box-shadow: 0 4px 14px rgba(224,96,0,.45); }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.btn-outline {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--white); color: var(--sub); border: 1.5px solid var(--border);
+  border-radius: 9px; padding: 9px 16px; font-family: var(--sans); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: border-color .2s, color .2s, background .2s;
+}
+.btn-outline:hover { border-color: var(--orange-md); color: var(--orange); background: var(--orange-lt); }
+.btn-outline svg { stroke: currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.excel-status { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* KANBAN */
+.kanban-board {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; padding: 16px 18px; overflow-y: auto; flex: 1;
+}
+.kanban-board::-webkit-scrollbar { width: 5px; }
+.kanban-board::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 5px; }
+
+.kb-col { display: flex; flex-direction: column; gap: 0; }
+.kb-col-header {
+  padding: 10px 13px; border-radius: 10px 10px 0 0;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: space-between;
+  border: 1.5px solid transparent; border-bottom: none;
+}
+.col-count { font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 20px; }
+
+.col-new        .kb-col-header { background: var(--red-lt);    color: var(--red);    border-color: var(--red-md); }
+.col-new        .col-count     { background: var(--red-md);    color: var(--red); }
+.col-contacted  .kb-col-header { background: var(--amber-lt);  color: var(--amber);  border-color: var(--amber-md); }
+.col-contacted  .col-count     { background: var(--amber-md);  color: var(--amber); }
+.col-negotiating .kb-col-header { background: var(--orange-lt);color: var(--orange); border-color: var(--orange-md); }
+.col-negotiating .col-count    { background: var(--orange-md); color: var(--orange-dk); }
+.col-approved   .kb-col-header { background: var(--green-lt);  color: var(--green);  border-color: var(--green-md); }
+.col-approved   .col-count     { background: var(--green-md);  color: var(--green); }
+
+.kb-col-drop {
+  flex: 1; min-height: 120px;
+  border: 1.5px solid var(--border2); border-top: none;
+  border-radius: 0 0 10px 10px; background: rgba(255,255,255,.75);
+  padding: 8px; display: flex; flex-direction: column; gap: 7px;
+  transition: border-color .2s, background .2s;
+}
+.col-new         .kb-col-drop { border-color: var(--red-md); }
+.col-contacted   .kb-col-drop { border-color: var(--amber-md); }
+.col-negotiating .kb-col-drop { border-color: var(--orange-md); }
+.col-approved    .kb-col-drop { border-color: var(--green-md); }
+.kb-col-drop.drag-over { background: var(--orange-lt); border-color: var(--orange); }
+
+/* CLIENT/SUPPLIER CARDS */
+.issue-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 9px; padding: 12px 14px; cursor: grab;
+  transition: border-color .2s, transform .15s, box-shadow .15s;
+  position: relative; overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.issue-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--ca, var(--muted)); border-radius: 9px 0 0 9px; }
+.issue-card[data-priority="critical"] { --ca: var(--red); }
+.issue-card[data-priority="high"]     { --ca: var(--amber); }
+.issue-card[data-priority="medium"]   { --ca: var(--orange); }
+.issue-card[data-priority="low"]      { --ca: var(--green); }
+.issue-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.issue-card.dragging { opacity: .45; transform: scale(.96); cursor: grabbing; }
+
+.ic-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; padding-left: 8px; }
+.ic-id { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .05em; }
+.ic-priority { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 5px; letter-spacing: .04em; text-transform: uppercase; }
+.ic-priority.critical { background: var(--red-lt);    color: var(--red); }
+.ic-priority.high     { background: var(--amber-lt);  color: var(--amber); }
+.ic-priority.medium   { background: var(--orange-lt); color: var(--orange); }
+.ic-priority.low      { background: var(--green-lt);  color: var(--green); }
+.ic-type-tag {
+  display: inline-block; margin-left: 8px; margin-bottom: 5px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 4px;
+  background: var(--orange-lt); color: var(--orange);
+}
+.ic-title { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.45; margin-bottom: 7px; padding-left: 8px; }
+.ic-meta { font-size: 10px; color: var(--muted); padding-left: 8px; display: flex; flex-direction: column; gap: 2px; }
+
+/* LOG */
+.issue-log-section {
+  border-top: 1px solid var(--border); flex-shrink: 0;
+  max-height: 180px; overflow-y: auto; background: var(--white);
+}
+.issue-log-section::-webkit-scrollbar { width: 4px; }
+.issue-log-section::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+.log-header {
+  padding: 10px 22px 7px; font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--sub);
+  display: flex; align-items: center; gap: 8px;
+  position: sticky; top: 0; background: var(--white);
+  border-bottom: 1px solid var(--border); z-index: 1;
+}
+.log-header::after { content:''; flex:1; height:1px; background: var(--border); }
+.log-entries { padding: 6px 22px 12px; display: flex; flex-direction: column; gap: 4px; }
+.log-entry { display: flex; align-items: baseline; gap: 10px; font-size: 11px; }
+.log-time   { color: var(--muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.log-action { color: var(--orange); flex-shrink: 0; font-weight: 700; }
+.log-msg    { color: var(--sub); }
+
+/* SECTION DIVIDER */
+.section-div {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 10px; margin: 4px 0 12px;
+}
+.section-div::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* ── FULL PANEL LAYOUTS ── */
+.quotes-body { display: flex; flex: 1; overflow: hidden; }
+.quotes-left { width: 340px; min-width: 280px; background: var(--white); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.quotes-right { flex: 1; overflow-y: auto; padding: 18px 22px; }
+
+.comms-body { display: flex; flex: 1; overflow: hidden; }
+.comms-left { width: 340px; min-width: 280px; background: var(--white); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.comms-right { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+.hq-body { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; gap: 16px; flex-wrap: wrap; align-content: flex-start; }
+
+/* QUOTE TABLE */
+.quote-table-wrapper { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+.quote-table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.quote-table-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.quote-table-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+table.qt { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.qt th { text-align: left; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 9px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg); }
+table.qt td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--sub); vertical-align: middle; }
+table.qt tr:last-child td { border-bottom: none; }
+table.qt td.bold { font-weight: 700; color: var(--text); }
+table.qt td.num { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); }
+.status-chip { font-size: 9px; font-weight: 700; padding: 3px 9px; border-radius: 5px; text-transform: uppercase; letter-spacing: .05em; display: inline-block; }
+.status-chip.confirmed { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+.status-chip.pending   { background: var(--amber-lt); color: var(--amber); border: 1px solid var(--amber-md); }
+.status-chip.review    { background: var(--orange-lt);color: var(--orange);border: 1px solid var(--orange-md); }
+.status-chip.expired   { background: var(--red-lt);   color: var(--red);   border: 1px solid var(--red-md); }
+.status-chip.intransit { background: #EBF1FF; color: #2040A0; border: 1px solid #A0B8F0; }
+.status-chip.delivered { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+
+/* CONTRACT CARDS */
+.contract-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 18px; box-shadow: var(--shadow-sm); margin-bottom: 12px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.contract-card:hover { border-color: var(--orange-md); box-shadow: var(--shadow); }
+.cc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cc-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.cc-id { font-size: 10px; color: var(--muted); font-weight: 600; }
+.cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cc-field { background: var(--bg); border-radius: 7px; padding: 8px 12px; }
+.cc-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 3px; }
+.cc-val { font-size: 12px; font-weight: 600; color: var(--text); }
+
+/* COMMS TRACKER */
+.comms-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px;
+  box-shadow: var(--shadow-sm); transition: border-color .2s;
+}
+.comms-card:hover { border-color: var(--orange-md); }
+.comms-avatar {
+  width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+  background: var(--orange-lt); border: 1px solid var(--orange-md);
+  display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--orange);
+}
+.comms-supplier { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.comms-last { font-size: 11px; color: var(--sub); margin-bottom: 6px; }
+.comms-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.comms-tag { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+.comms-tag.call     { background: var(--orange-lt); color: var(--orange);  border: 1px solid var(--orange-md); }
+.comms-tag.email    { background: var(--amber-lt);  color: var(--amber);   border: 1px solid var(--amber-md); }
+.comms-tag.complaint{ background: var(--red-lt);    color: var(--red);     border: 1px solid var(--red-md); }
+.comms-tag.resolved { background: var(--green-lt);  color: var(--green);   border: 1px solid var(--green-md); }
+.comms-tag.coord    { background: var(--purple-lt); color: var(--purple);  border: 1px solid #DDD6FE; }
+.comms-time { margin-left: auto; font-size: 10px; color: var(--muted); flex-shrink: 0; font-weight: 600; }
+
+/* COMPLAINT LOG */
+.complaint-section { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.cs-header { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--red-lt); display: flex; align-items: center; gap: 8px; }
+.cs-title { font-size: 13px; font-weight: 700; color: var(--red); }
+.cs-entry { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
+.cs-entry:last-child { border-bottom: none; }
+.cs-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.cs-dot.open     { background: var(--red); }
+.cs-dot.resolved { background: var(--green); }
+.cs-body { flex: 1; }
+.cs-who  { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.cs-desc { font-size: 11px; color: var(--sub); line-height: 1.55; }
+.cs-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* HQ CARDS */
+.hq-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px; box-shadow: var(--shadow-sm); flex: 1; min-width: 260px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.hq-card:hover { border-color: var(--orange-md); box-shadow: var(--shadow); }
+.hq-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.hq-icon {
+  width: 36px; height: 36px; border-radius: 9px; background: var(--orange-lt);
+  border: 1px solid var(--orange-md); display: grid; place-items: center; flex-shrink: 0;
+}
+.hq-icon svg { width: 17px; height: 17px; stroke: var(--orange); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.hq-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.hq-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.hq-item  { display: flex; align-items: flex-start; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.hq-item:last-child { border-bottom: none; }
+.hq-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex-shrink: 0; margin-top: 5px; }
+.hq-item-text { font-size: 11px; color: var(--sub); line-height: 1.55; flex: 1; }
+.hq-item-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: var(--orange-lt); color: var(--orange); border: 1px solid var(--orange-md); flex-shrink: 0; text-transform: uppercase; letter-spacing: .05em; }
+
+/* QUOTES LEFT PANEL */
+.ql-item {
+  padding: 14px 18px; border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background .15s;
+}
+.ql-item:hover { background: var(--bg); }
+.ql-item.active { background: var(--orange-lt); border-left: 3px solid var(--orange); }
+.ql-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.ql-type { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.ql-footer { display: flex; align-items: center; justify-content: space-between; }
+
+/* DELIVERY / SHIPMENT TRACKER */
+.ship-track-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 14px;
+}
+.ship-track-head {
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+}
+.ship-track-id { font-size: 13px; font-weight: 700; color: var(--text); }
+.ship-track-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.ship-steps { display: flex; align-items: flex-start; gap: 0; padding: 18px 20px; overflow-x: auto; }
+.ship-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 90px; position: relative; }
+.ship-step:not(:last-child)::after {
+  content:''; position:absolute; top: 13px; left: calc(50% + 13px); right: calc(-50% + 13px);
+  height: 2px; background: var(--border);
+}
+.ship-step.done:not(:last-child)::after { background: var(--orange); }
+.ship-dot {
+  width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
+  background: var(--white); display: grid; place-items: center;
+  font-size: 11px; z-index: 1; margin-bottom: 6px; flex-shrink: 0;
+}
+.ship-step.done .ship-dot { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 700; }
+.ship-step.active .ship-dot { background: var(--orange-lt); border-color: var(--orange); color: var(--orange); animation: pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(224,96,0,.3);} 50%{box-shadow:0 0 0 6px rgba(224,96,0,0);} }
+.ship-label { font-size: 10px; font-weight: 600; color: var(--muted); text-align: center; line-height: 1.3; }
+.ship-step.done .ship-label { color: var(--orange); font-weight: 700; }
+.ship-step.active .ship-label { color: var(--text); font-weight: 700; }
+.ship-date { font-size: 9px; color: var(--muted); text-align: center; margin-top: 2px; }
+
+/* DOC VAULT */
+.doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 10px; padding: 4px 0 12px; }
+.doc-item {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 12px; display: flex; flex-direction: column; gap: 6px;
+  cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  box-shadow: var(--shadow-sm);
+}
+.doc-item:hover { border-color: var(--orange-md); box-shadow: var(--shadow); }
+.doc-icon { font-size: 24px; margin-bottom: 2px; }
+.doc-name { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.4; }
+.doc-meta { font-size: 10px; color: var(--muted); }
+.doc-tag { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; align-self: flex-start; }
+.doc-tag.contract  { background: var(--orange-lt); color: var(--orange); }
+.doc-tag.invoice   { background: var(--amber-lt);  color: var(--amber); }
+.doc-tag.cert      { background: var(--green-lt);  color: var(--green); }
+.doc-tag.delivery  { background: #EBF1FF; color: #2040A0; }
+.doc-tag.report    { background: var(--purple-lt); color: var(--purple); }
+
+/* TASK LOG */
+.task-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px;
+  transition: border-color .2s; margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+}
+.task-item:hover { border-color: var(--orange-md); }
+.task-check {
+  width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border2);
+  flex-shrink: 0; margin-top: 1px; cursor: pointer;
+  display: grid; place-items: center; transition: background .15s, border-color .15s;
+}
+.task-check.done { background: var(--green); border-color: var(--green); }
+.task-check.done::after { content:'✓'; font-size: 11px; color: #fff; font-weight: 700; }
+.task-check:not(.done)::after { content:''; }
+.task-body { flex: 1; }
+.task-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.task-title.done-text { text-decoration: line-through; color: var(--muted); }
+.task-desc { font-size: 11px; color: var(--sub); line-height: 1.55; }
+.task-footer { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.task-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; }
+.task-badge.urgent  { background: var(--red-lt);    color: var(--red); }
+.task-badge.normal  { background: var(--orange-lt); color: var(--orange); }
+.task-badge.routine { background: var(--green-lt);  color: var(--green); }
+.task-due { font-size: 10px; color: var(--muted); }
+.task-assign { font-size: 10px; color: var(--muted); margin-left: auto; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(20,5,0,.45);
+  display: none; place-items: center; z-index: 200; backdrop-filter: blur(3px);
+}
+.modal-overlay.open { display: grid; }
+.modal {
+  background: var(--white); border-radius: 14px; padding: 26px 28px;
+  width: 520px; max-width: 96vw; max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(20,5,0,.3);
+}
+.modal-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 5px; }
+.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.form-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 5px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 9px 13px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-family: var(--sans); font-size: 13px; color: var(--text);
+  background: var(--white); outline: none; transition: border-color .2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--orange); }
+.form-textarea { min-height: 80px; resize: vertical; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.btn-cancel {
+  padding: 9px 20px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--sub);
+  background: var(--white); cursor: pointer; transition: border-color .2s;
+}
+.btn-cancel:hover { border-color: var(--border2); }
+.btn-submit {
+  padding: 9px 22px; border: none; border-radius: 8px;
+  font-family: var(--sans); font-size: 13px; font-weight: 700; color: #fff;
+  background: var(--orange); cursor: pointer; transition: background .2s;
+  box-shadow: 0 2px 8px rgba(224,96,0,.35);
+}
+.btn-submit:hover { background: var(--orange-dk); }
+
+/* PROGRESS BAR */
+.prog-item { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 11px 13px; margin-bottom: 8px; }
+.prog-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.prog-meta { font-size: 10px; color: var(--muted); margin-bottom: 8px; }
+.prog-bar { height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; }
+.prog-pct { font-size: 9px; font-weight: 700; margin-top: 4px; }
+
+/* CREDIT BAR */
+.credit-bar {
+  height: 34px; background: var(--white); border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 11px; color: var(--muted); font-weight: 500;
+}
+.credit-name { font-weight: 700; color: var(--orange); }
+.credit-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border2); }
+.credit-bar a { color: var(--muted); text-decoration: none; }
+.credit-bar a:hover { color: var(--orange); }
+
+/* SKILL SELECTORS */
+.skill-selector-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; padding: 4px 18px 16px; }
+.skill-chip {
+  border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; transition: border-color .2s, background .2s;
+  background: var(--white);
+}
+.skill-chip:hover { border-color: var(--orange-md); background: var(--orange-lt); }
+.skill-chip.selected { border-color: var(--orange); background: var(--orange-lt); }
+.skill-chip-icon { font-size: 18px; }
+.skill-chip-label { font-size: 10px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; }
+
+/* EXP SELECTOR */
+.exp-selector { padding: 4px 18px 12px; }
+.exp-label { font-size: 11px; font-weight: 600; color: var(--sub); margin-bottom: 7px; }
+.exp-bar { display: flex; gap: 5px; }
+.exp-btn {
+  flex: 1; padding: 6px 4px; border: 1.5px solid var(--border); border-radius: 7px;
+  font-family: var(--sans); font-size: 10px; font-weight: 700; color: var(--muted);
+  background: var(--white); cursor: pointer; transition: all .15s;
+}
+.exp-btn:hover { border-color: var(--orange-md); color: var(--orange); }
+.exp-btn.active { border-color: var(--orange); background: var(--orange); color: #fff; }
+
+/* PROFILE PREVIEW */
+.profile-preview {
+  background: linear-gradient(135deg, #B04500 0%, #E06000 60%, #FF7020 100%);
+  border-radius: 12px; padding: 18px 20px; color: #fff; box-shadow: var(--shadow);
+}
+.pp-name { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+.pp-sub  { font-size: 12px; color: rgba(255,220,180,.85); margin-bottom: 12px; }
+.pp-skills { display: flex; flex-wrap: wrap; gap: 7px; }
+.pp-skill { font-size: 11px; font-weight: 600; background: rgba(255,255,255,.2); padding: 4px 11px; border-radius: 20px; }
+
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">
+      <!-- Lead Pacific Logo — Aluminium ingot / L mark -->
+      <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="13,2 24,8 24,20 13,24 2,20 2,8" fill="#E06000" opacity=".15"/>
+        <polygon points="13,2 24,8 24,20 13,24 2,20 2,8" stroke="#E06000" stroke-width="1.5" fill="none"/>
+        <text x="7" y="18" font-family="Inter,sans-serif" font-weight="800" font-size="11" fill="#E06000">LP</text>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">LEAD <span>PACIFIC</span></div>
+      <div class="brand-sub">Aluminum &amp; Metal Supply Chain Management — Procurement Operations</div>
+    </div>
+  </div>
+
+  <div class="topbar-pills">
+    <span class="req-pill r1"><span class="dot"></span> Client Orders</span>
+    <span class="req-pill r2"><span class="dot"></span> Quotes &amp; Shipments</span>
+    <span class="req-pill r3"><span class="dot"></span> Comms &amp; Docs</span>
+  </div>
+
+  <div class="topbar-right">
+    <div class="live-badge"><div class="pulse"></div> LIVE</div>
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+<!-- ── NAV TABS ── -->
+<nav class="nav-tabs">
+  <div class="nav-tab active" data-tab="clients" onclick="switchTab('clients')">
+    <svg viewBox="0 0 16 16"><circle cx="6" cy="5" r="2.5"/><path d="M1 13s1-3 5-3 5 3 5 3"/><path d="M11 7.5s1-.5 2-.5 2.5.5 2.5 2.5"/></svg>
+    Client &amp; Order Follow-Up
+  </div>
+  <div class="nav-tab" data-tab="quotes" onclick="switchTab('quotes')">
+    <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+    Quotes from Manufacturers
+  </div>
+  <div class="nav-tab" data-tab="delivery" onclick="switchTab('delivery')">
+    <svg viewBox="0 0 16 16"><rect x="1" y="7" width="10" height="7" rx="1.5"/><path d="M11 10h2.5L15 8V7h-4"/><circle cx="4" cy="14" r="1.5"/><circle cx="12" cy="14" r="1.5"/></svg>
+    Delivery &amp; Shipment Tracking
+  </div>
+  <div class="nav-tab" data-tab="shipping" onclick="switchTab('shipping')">
+    <svg viewBox="0 0 16 16"><path d="M8 2l6 3v6l-6 3-6-3V5L8 2z"/><path d="M2 5l6 3 6-3M8 8v6"/></svg>
+    Shipping Orders &amp; Files
+  </div>
+  <div class="nav-tab" data-tab="comms" onclick="switchTab('comms')">
+    <svg viewBox="0 0 16 16"><path d="M14 10.5a1.5 1.5 0 01-1.5 1.5H5l-3 3V3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v7z"/></svg>
+    Communications &amp; Transactions
+  </div>
+  <div class="nav-tab" data-tab="tasks" onclick="switchTab('tasks')">
+    <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8l2 2 4-4"/></svg>
+    Supervisor Tasks
+  </div>
+</nav>
+
+<!-- ══════════════════════ TAB 1: CLIENT & ORDER FOLLOW-UP ══════════════════════ -->
+<div class="panel active app-body" id="tab-clients">
+  <aside class="left-panel">
+
+    <div class="panel-section">
+      <div class="section-header">Client Overview <span class="req-badge r1">Live</span></div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Active Clients</div>
+          <div class="kpi-value">18</div>
+          <div class="kpi-sub">Ongoing accounts</div>
+        </div>
+        <div class="kpi-card a">
+          <div class="kpi-label">Open Orders</div>
+          <div class="kpi-value" id="open-client-count">—</div>
+          <div class="kpi-sub">Tracked live</div>
+        </div>
+        <div class="kpi-card g">
+          <div class="kpi-label">On-Time Rate</div>
+          <div class="kpi-value">94%</div>
+          <div class="kpi-sub">Last 30 days</div>
+        </div>
+        <div class="kpi-card r">
+          <div class="kpi-label">Follow-ups Due</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-sub">This week</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">Key Clients <span class="req-badge r3">Accounts</span></div>
+      <div class="po-list">
+        <div class="po-row"><span class="po-id">C-001</span><div class="po-info"><div class="po-item">Formosa Heavy Industries</div><div class="po-vendor">6061-T6 Aluminium Sheet · NT$2.4M</div></div><span class="po-status confirmed">Active</span></div>
+        <div class="po-row"><span class="po-id">C-002</span><div class="po-info"><div class="po-item">Pacific Metals Co.</div><div class="po-vendor">5052 Aluminium Coil · NT$1.8M</div></div><span class="po-status pending">Follow-up</span></div>
+        <div class="po-row"><span class="po-id">C-003</span><div class="po-info"><div class="po-item">Taiwan Extrusion Ltd.</div><div class="po-vendor">7075 Billet · NT$3.1M</div></div><span class="po-status review">In Review</span></div>
+        <div class="po-row"><span class="po-id">C-004</span><div class="po-info"><div class="po-item">ShinKong Construction</div><div class="po-vendor">Aluminium Profile System · NT$980K</div></div><span class="po-status confirmed">Active</span></div>
+        <div class="po-row"><span class="po-id">C-005</span><div class="po-info"><div class="po-item">Nan Ya Plastics Group</div><div class="po-vendor">Copper Strip / Rod · NT$4.2M</div></div><span class="po-status intransit">Pending PO</span></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">Recent Orders <span class="req-badge r2">PO Status</span></div>
+      <div class="po-list">
+        <div class="po-row"><span class="po-id">PO-7041</span><div class="po-info"><div class="po-item">6061 Sheet 2mm × 1000 pcs</div><div class="po-vendor">Formosa Heavy Industries</div></div><span class="po-status confirmed">Confirmed</span></div>
+        <div class="po-row"><span class="po-id">PO-7039</span><div class="po-info"><div class="po-item">5052 Coil 0.8mm × 5 tonne</div><div class="po-vendor">Pacific Metals Co.</div></div><span class="po-status intransit">In Transit</span></div>
+        <div class="po-row"><span class="po-id">PO-7035</span><div class="po-info"><div class="po-item">7075 Billet × 20 tonne</div><div class="po-vendor">Taiwan Extrusion Ltd.</div></div><span class="po-status pending">Awaiting Payment</span></div>
+      </div>
+    </div>
+
+  </aside>
+
+  <main class="right-panel right-panel-inner">
+    <div class="right-topbar">
+      <div>
+        <div class="rt-title">Client Order Follow-Up — Kanban Pipeline</div>
+        <div class="rt-sub">Lead Pacific · Drag orders across stages · Stay on top of every client account</div>
+        <div class="excel-status" id="client-excel-status">Live pipeline — drag cards to update stage · Import Excel to load your own orders</div>
+      </div>
+      <div class="topbar-actions">
+        <input type="file" id="client-excel-input" accept=".xlsx,.xls" style="display:none" onchange="importClientExcel(event)">
+        <button class="btn-outline" onclick="document.getElementById('client-excel-input').click()">
+          <svg width="14" height="14" viewBox="0 0 14 14" stroke-width="1.5"><path d="M7 1v8M3.5 5.5L7 9l3.5-3.5"/><path d="M1 11.5h12v1.5H1z"/></svg>
+          Import
+        </button>
+        <button class="btn-outline" onclick="exportClientExcel()">
+          <svg width="14" height="14" viewBox="0 0 14 14" stroke-width="1.5"><path d="M7 9V1M3.5 4.5L7 1l3.5 3.5"/><path d="M1 11.5h12v1.5H1z"/></svg>
+          Export
+        </button>
+        <button class="add-btn" onclick="openClientModal()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          Add Order
+        </button>
+      </div>
+    </div>
+
+    <div class="kanban-board">
+      <div class="kb-col col-new">
+        <div class="kb-col-header">New Order <span class="col-count" id="cnt-c-new">0</span></div>
+        <div class="kb-col-drop" id="drop-c-new" ondragover="dragOver(event)" ondrop="dropClient(event,'new')" ondragleave="dragLeave(event)"></div>
+      </div>
+      <div class="kb-col col-contacted">
+        <div class="kb-col-header">Processing <span class="col-count" id="cnt-c-contacted">0</span></div>
+        <div class="kb-col-drop" id="drop-c-contacted" ondragover="dragOver(event)" ondrop="dropClient(event,'contacted')" ondragleave="dragLeave(event)"></div>
+      </div>
+      <div class="kb-col col-negotiating">
+        <div class="kb-col-header">Shipped / In Transit <span class="col-count" id="cnt-c-negotiating">0</span></div>
+        <div class="kb-col-drop" id="drop-c-negotiating" ondragover="dragOver(event)" ondrop="dropClient(event,'negotiating')" ondragleave="dragLeave(event)"></div>
+      </div>
+      <div class="kb-col col-approved">
+        <div class="kb-col-header">Delivered &amp; Closed <span class="col-count" id="cnt-c-approved">0</span></div>
+        <div class="kb-col-drop" id="drop-c-approved" ondragover="dragOver(event)" ondrop="dropClient(event,'approved')" ondragleave="dragLeave(event)"></div>
+      </div>
+    </div>
+
+    <div class="issue-log-section">
+      <div class="log-header">Order Activity Log</div>
+      <div class="log-entries" id="client-log">
+        <div class="log-entry">
+          <span class="log-time">--:--</span>
+          <span class="log-action">SYSTEM</span>
+          <span class="log-msg">Lead Pacific Order Pipeline ready — tracking active client orders</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════ TAB 2: QUOTES FROM MANUFACTURERS ══════════════════════ -->
+<div class="panel-full" id="tab-quotes" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Quotes Obtained from Manufacturers</div>
+      <div class="rt-sub">Log, compare, and track incoming quotes from aluminium and metal suppliers · Lead Pacific procurement</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openQuoteModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Log New Quote
+      </button>
+    </div>
+  </div>
+  <div class="quotes-body">
+    <div class="quotes-left">
+      <div class="section-header" style="padding:16px 18px 10px;">Manufacturers <span class="req-badge r2">Active Quotes</span></div>
+      <div id="quotes-supplier-list">
+        <div class="ql-item active" onclick="selectQuote(this)">
+          <div class="ql-name">China Steel Corp. (CSC)</div>
+          <div class="ql-type">6061-T6 Aluminium Sheet &amp; Plate</div>
+          <div class="ql-footer"><span class="status-chip confirmed">Confirmed</span><span style="font-size:10px;color:var(--muted);">NT$1,240,000</span></div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Hindalco Industries</div>
+          <div class="ql-type">5052 / 3003 Aluminium Coil</div>
+          <div class="ql-footer"><span class="status-chip pending">Pending</span><span style="font-size:10px;color:var(--muted);">NT$870,000</span></div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Novelis Taiwan</div>
+          <div class="ql-type">7075 / 2024 High-Strength Alloy</div>
+          <div class="ql-footer"><span class="status-chip review">In Review</span><span style="font-size:10px;color:var(--muted);">NT$2,310,000</span></div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Trimet Aluminium SE</div>
+          <div class="ql-type">Primary Aluminium Ingot (LME)</div>
+          <div class="ql-footer"><span class="status-chip confirmed">Confirmed</span><span style="font-size:10px;color:var(--muted);">NT$3,050,000</span></div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Walsin Lihwa Corp.</div>
+          <div class="ql-type">Copper Rod / Strip / Wire</div>
+          <div class="ql-footer"><span class="status-chip expired">Expired</span><span style="font-size:10px;color:var(--muted);">NT$590,000</span></div>
+        </div>
+        <div id="dyn-quote-list"></div>
+      </div>
+    </div>
+    <div class="quotes-right">
+
+      <div class="section-div">Active Quote — China Steel Corp. (CSC)</div>
+
+      <div class="quote-table-wrapper">
+        <div class="quote-table-header">
+          <div>
+            <div class="quote-table-title">Quote Log — QT-LP-2025-018</div>
+            <div class="quote-table-sub">Received: 12 Jun 2025 · Valid until: 12 Sep 2025 · Incoterm: CIF Keelung</div>
+          </div>
+          <span class="status-chip confirmed">Confirmed</span>
+        </div>
+        <table class="qt">
+          <thead><tr><th>Item / Grade</th><th>Specification</th><th>Unit Price (NT$/kg)</th><th>Qty (kg)</th><th>Total (NT$)</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="bold">Al 6061-T6 Sheet</td><td>2mm × 1250mm × 2500mm · Mill finish</td><td class="num">$88.50</td><td class="num">8,000</td><td class="num">$708,000</td><td><span class="status-chip confirmed">Confirmed</span></td></tr>
+            <tr><td class="bold">Al 6061-T6 Plate</td><td>6mm × 1000mm × 2000mm · Anodising grade</td><td class="num">$91.00</td><td class="num">5,000</td><td class="num">$455,000</td><td><span class="status-chip confirmed">Confirmed</span></td></tr>
+            <tr><td class="bold">Al 6061 Flat Bar</td><td>25mm × 100mm × 6m extrusion</td><td class="num">$95.50</td><td class="num">800</td><td class="num">$76,400</td><td><span class="status-chip pending">Pending</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-div">Contract Details — CON-LP-2025-018</div>
+
+      <div class="contract-card">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">China Steel Corp. — Aluminium Supply Agreement</div>
+            <div class="cc-id">Contract ID: CON-LP-2025-018 · Signed: 15 Jun 2025</div>
+          </div>
+          <span class="status-chip confirmed">Active</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Contract Value</div><div class="cc-val">NT$1,240,000</div></div>
+          <div class="cc-field"><div class="cc-label">Payment Terms</div><div class="cc-val">T/T 30% Deposit · 70% before shipment</div></div>
+          <div class="cc-field"><div class="cc-label">Lead Time</div><div class="cc-val">21–28 calendar days</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Term</div><div class="cc-val">CIF Keelung Port, Taiwan</div></div>
+          <div class="cc-field"><div class="cc-label">Mill Certificate</div><div class="cc-val">EN 10204 3.1 · ASTM B209</div></div>
+          <div class="cc-field"><div class="cc-label">Packaging</div><div class="cc-val">Wooden pallet · moisture-proof wrap</div></div>
+        </div>
+      </div>
+
+      <div class="contract-card">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">Novelis Taiwan — High-Strength Alloy Framework</div>
+            <div class="cc-id">Contract ID: CON-LP-2025-016 · Draft under review</div>
+          </div>
+          <span class="status-chip review">In Review</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Contract Value</div><div class="cc-val">NT$2,310,000</div></div>
+          <div class="cc-field"><div class="cc-label">Payment Terms</div><div class="cc-val">L/C at sight — TBC</div></div>
+          <div class="cc-field"><div class="cc-label">Lead Time</div><div class="cc-val">35–45 calendar days</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Term</div><div class="cc-val">FOB Shanghai</div></div>
+          <div class="cc-field"><div class="cc-label">Price Escalation</div><div class="cc-val">LME +8% premium — quarterly review</div></div>
+          <div class="cc-field"><div class="cc-label">Inspection</div><div class="cc-val">SGS pre-shipment inspection required</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 3: DELIVERY & SHIPMENT TRACKING ══════════════════════ -->
+<div class="panel-full" id="tab-delivery" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Delivery Dates &amp; Shipment Status</div>
+      <div class="rt-sub">Track inbound shipments, ETA, and delivery confirmation for all active Lead Pacific orders</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openShipModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Add Shipment
+      </button>
+    </div>
+  </div>
+  <div style="flex:1; overflow-y:auto; padding:18px 22px; display:flex; flex-direction:column; gap:0;">
+
+    <!-- Shipment 1 -->
+    <div class="ship-track-card">
+      <div class="ship-track-head">
+        <div>
+          <div class="ship-track-id">SHP-LP-7041 · China Steel Corp. → Formosa Heavy Industries</div>
+          <div class="ship-track-sub">6061-T6 Sheet · 8,000 kg · ETA: <strong>04 Jul 2025</strong> · Vessel: Ever Glory (EGLV) · ETD Shanghai: 25 Jun 2025</div>
+        </div>
+        <span class="status-chip intransit">In Transit</span>
+      </div>
+      <div class="ship-steps">
+        <div class="ship-step done">
+          <div class="ship-dot">✓</div>
+          <div class="ship-label">Order Placed</div>
+          <div class="ship-date">12 Jun</div>
+        </div>
+        <div class="ship-step done">
+          <div class="ship-dot">✓</div>
+          <div class="ship-label">Production Complete</div>
+          <div class="ship-date">22 Jun</div>
+        </div>
+        <div class="ship-step done">
+          <div class="ship-dot">✓</div>
+          <div class="ship-label">Departed Origin</div>
+          <div class="ship-date">25 Jun</div>
+        </div>
+        <div class="ship-step active">
+          <div class="ship-dot">▶</div>
+          <div class="ship-label">At Sea</div>
+          <div class="ship-date">Now</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">5</div>
+          <div class="ship-label">Port Arrival</div>
+          <div class="ship-date">04 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">6</div>
+          <div class="ship-label">Customs Cleared</div>
+          <div class="ship-date">~06 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">7</div>
+          <div class="ship-label">Delivered</div>
+          <div class="ship-date">~08 Jul</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipment 2 -->
+    <div class="ship-track-card">
+      <div class="ship-track-head">
+        <div>
+          <div class="ship-track-id">SHP-LP-7039 · Hindalco Industries → Pacific Metals Co.</div>
+          <div class="ship-track-sub">5052 Coil 0.8mm · 5 tonne · ETA: <strong>15 Jul 2025</strong> · Vessel: MSC Alma · ETD Mumbai: 28 Jun 2025</div>
+        </div>
+        <span class="status-chip pending">Awaiting Departure</span>
+      </div>
+      <div class="ship-steps">
+        <div class="ship-step done">
+          <div class="ship-dot">✓</div>
+          <div class="ship-label">Order Placed</div>
+          <div class="ship-date">05 Jun</div>
+        </div>
+        <div class="ship-step done">
+          <div class="ship-dot">✓</div>
+          <div class="ship-label">Production Complete</div>
+          <div class="ship-date">24 Jun</div>
+        </div>
+        <div class="ship-step active">
+          <div class="ship-dot">▶</div>
+          <div class="ship-label">Awaiting Departure</div>
+          <div class="ship-date">28 Jun</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">4</div>
+          <div class="ship-label">At Sea</div>
+          <div class="ship-date">~01 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">5</div>
+          <div class="ship-label">Port Arrival</div>
+          <div class="ship-date">15 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">6</div>
+          <div class="ship-label">Customs Cleared</div>
+          <div class="ship-date">~17 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">7</div>
+          <div class="ship-label">Delivered</div>
+          <div class="ship-date">~19 Jul</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipment 3 -->
+    <div class="ship-track-card">
+      <div class="ship-track-head">
+        <div>
+          <div class="ship-track-id">SHP-LP-7035 · Trimet SE → Taiwan Extrusion Ltd.</div>
+          <div class="ship-track-sub">7075 Billet · 20 tonne · ETA: <strong>22 Jul 2025</strong> · Vessel: Hapag Hannover · Port of Hamburg → Keelung</div>
+        </div>
+        <span class="status-chip review">Booking Confirmed</span>
+      </div>
+      <div class="ship-steps">
+        <div class="ship-step done">
+          <div class="ship-dot">✓</div>
+          <div class="ship-label">Order Placed</div>
+          <div class="ship-date">01 Jun</div>
+        </div>
+        <div class="ship-step active">
+          <div class="ship-dot">▶</div>
+          <div class="ship-label">In Production</div>
+          <div class="ship-date">Now</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">3</div>
+          <div class="ship-label">Departed Origin</div>
+          <div class="ship-date">08 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">4</div>
+          <div class="ship-label">At Sea</div>
+          <div class="ship-date">~10 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">5</div>
+          <div class="ship-label">Port Arrival</div>
+          <div class="ship-date">22 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">6</div>
+          <div class="ship-label">Customs Cleared</div>
+          <div class="ship-date">~24 Jul</div>
+        </div>
+        <div class="ship-step">
+          <div class="ship-dot">7</div>
+          <div class="ship-label">Delivered</div>
+          <div class="ship-date">~26 Jul</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dyn-ship-list"></div>
+
+    <!-- Delivery Calendar Summary -->
+    <div class="quote-table-wrapper" style="margin-top:6px;">
+      <div class="quote-table-header">
+        <div>
+          <div class="quote-table-title">📅 Upcoming Delivery Schedule</div>
+          <div class="quote-table-sub">All confirmed shipments — sorted by ETA</div>
+        </div>
+      </div>
+      <table class="qt">
+        <thead><tr><th>Shipment ID</th><th>Manufacturer</th><th>Client</th><th>Material / Grade</th><th>Qty</th><th>ETA</th><th>Method</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">SHP-LP-7041</td><td>China Steel Corp.</td><td>Formosa Heavy Ind.</td><td>6061-T6 Sheet</td><td class="num">8,000 kg</td><td class="num">04 Jul 25</td><td>Sea (FCL)</td><td><span class="status-chip intransit">In Transit</span></td></tr>
+          <tr><td class="bold">SHP-LP-7039</td><td>Hindalco Industries</td><td>Pacific Metals Co.</td><td>5052 Coil 0.8mm</td><td class="num">5,000 kg</td><td class="num">15 Jul 25</td><td>Sea (LCL)</td><td><span class="status-chip pending">Booked</span></td></tr>
+          <tr><td class="bold">SHP-LP-7035</td><td>Trimet Aluminium SE</td><td>Taiwan Extrusion Ltd.</td><td>7075 Billet</td><td class="num">20,000 kg</td><td class="num">22 Jul 25</td><td>Sea (FCL)</td><td><span class="status-chip review">Prod. Phase</span></td></tr>
+          <tr><td class="bold">SHP-LP-7030</td><td>Walsin Lihwa Corp.</td><td>Nan Ya Plastics</td><td>Copper Rod C11000</td><td class="num">2,000 kg</td><td class="num">30 Jul 25</td><td>Air Freight</td><td><span class="status-chip pending">Quoting</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 4: SHIPPING ORDERS & FILES ══════════════════════ -->
+<div class="panel-full" id="tab-shipping" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Shipping Orders, Delivery Notes &amp; Document Vault</div>
+      <div class="rt-sub">Determine shipment method, prepare delivery notes, organise files and all relevant documents</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openDocModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Upload Document
+      </button>
+    </div>
+  </div>
+  <div style="flex:1; overflow-y:auto; padding:18px 22px;">
+
+    <!-- Shipment Method Selector -->
+    <div class="quote-table-wrapper" style="margin-bottom:18px;">
+      <div class="quote-table-header">
+        <div>
+          <div class="quote-table-title">🚢 Shipment Method Determination</div>
+          <div class="quote-table-sub">Choose the most appropriate method based on volume, urgency, and cost for each order</div>
+        </div>
+      </div>
+      <table class="qt">
+        <thead><tr><th>Method</th><th>Best For</th><th>Lead Time</th><th>Cost Index</th><th>Current Orders</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">🚢 Sea Freight (FCL)</td><td>Large volume ≥ 5 tonne · Sheets, coils, billets</td><td class="num">18–28 days</td><td class="num">Low</td><td><span class="status-chip intransit">3 Active</span></td></tr>
+          <tr><td class="bold">📦 Sea Freight (LCL)</td><td>Mixed orders &lt; 5 tonne · Small batch</td><td class="num">21–35 days</td><td class="num">Medium</td><td><span class="status-chip pending">1 Booked</span></td></tr>
+          <tr><td class="bold">✈️ Air Freight</td><td>Urgent / high-value · Copper, specialty alloy</td><td class="num">3–7 days</td><td class="num">High</td><td><span class="status-chip review">1 Quoting</span></td></tr>
+          <tr><td class="bold">🚛 Land / Road</td><td>Domestic Taiwan · Local delivery</td><td class="num">1–3 days</td><td class="num">Low</td><td><span class="status-chip confirmed">5 Active</span></td></tr>
+          <tr><td class="bold">🏭 Ex-Works Pickup</td><td>Client collection from warehouse</td><td class="num">Same day</td><td class="num">Zero</td><td><span class="status-chip confirmed">2 Active</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Delivery Notes Section -->
+    <div class="section-div">Delivery Notes — Prepared</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; margin-bottom:20px;">
+      <div class="contract-card" style="margin-bottom:0;">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">📄 DN-LP-7041</div>
+            <div class="cc-id">Delivery Note · Formosa Heavy Ind. · 04 Jul 2025</div>
+          </div>
+          <span class="status-chip confirmed">Ready</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Material</div><div class="cc-val">6061-T6 Sheet · 8,000 kg</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Address</div><div class="cc-val">No. 88 Sec. 2, Hoping Rd., Taipei</div></div>
+          <div class="cc-field"><div class="cc-label">Carrier</div><div class="cc-val">Ever Glory / Evergreen Line</div></div>
+          <div class="cc-field"><div class="cc-label">Contact</div><div class="cc-val">Mr. Chen Wei — 02-2361-xxxx</div></div>
+        </div>
+      </div>
+      <div class="contract-card" style="margin-bottom:0;">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">📄 DN-LP-7039</div>
+            <div class="cc-id">Delivery Note · Pacific Metals Co. · 15 Jul 2025</div>
+          </div>
+          <span class="status-chip review">Draft</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Material</div><div class="cc-val">5052 Coil · 5,000 kg</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Address</div><div class="cc-val">Taichung Port Warehouse B3</div></div>
+          <div class="cc-field"><div class="cc-label">Carrier</div><div class="cc-val">MSC Alma / Mediterranean SC</div></div>
+          <div class="cc-field"><div class="cc-label">Contact</div><div class="cc-val">Ms. Lin Hui — 04-2335-xxxx</div></div>
+        </div>
+      </div>
+      <div class="contract-card" style="margin-bottom:0;">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">📄 DN-LP-LOCAL-01</div>
+            <div class="cc-id">Delivery Note · ShinKong Construction · Today</div>
+          </div>
+          <span class="status-chip confirmed">Dispatched</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Material</div><div class="cc-val">Al Profile System · 320 kg</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Address</div><div class="cc-val">Site Office, Xinyi District, Taipei</div></div>
+          <div class="cc-field"><div class="cc-label">Carrier</div><div class="cc-val">Lead Pacific own truck LPT-03</div></div>
+          <div class="cc-field"><div class="cc-label">Driver</div><div class="cc-val">Mr. Liu — 0912-xxx-xxx</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Vault -->
+    <div class="section-div">Document Vault — Organised Files</div>
+    <div class="doc-grid" id="doc-vault">
+      <!-- Contracts -->
+      <div class="doc-item"><div class="doc-icon">📃</div><div class="doc-name">CON-LP-2025-018 China Steel Supply Agreement</div><div class="doc-meta">Signed · 15 Jun 2025</div><span class="doc-tag contract">Contract</span></div>
+      <div class="doc-item"><div class="doc-icon">📃</div><div class="doc-name">CON-LP-2025-016 Novelis High-Strength Draft</div><div class="doc-meta">Draft · Under Review</div><span class="doc-tag contract">Contract</span></div>
+      <!-- Invoices -->
+      <div class="doc-item"><div class="doc-icon">🧾</div><div class="doc-name">INV-CSC-7041 Commercial Invoice</div><div class="doc-meta">NT$1,240,000 · Jun 2025</div><span class="doc-tag invoice">Invoice</span></div>
+      <div class="doc-item"><div class="doc-icon">🧾</div><div class="doc-name">INV-HIN-7039 Proforma Invoice</div><div class="doc-meta">NT$870,000 · Pending</div><span class="doc-tag invoice">Invoice</span></div>
+      <!-- Mill Certs -->
+      <div class="doc-item"><div class="doc-icon">📋</div><div class="doc-name">MILL-CSC-6061 Material Test Report EN 10204 3.1</div><div class="doc-meta">Batch #CSC-2506-A</div><span class="doc-tag cert">Mill Cert</span></div>
+      <div class="doc-item"><div class="doc-icon">📋</div><div class="doc-name">MILL-HIN-5052 ASTM B209 Cert</div><div class="doc-meta">Batch #HIN-2506-B</div><span class="doc-tag cert">Mill Cert</span></div>
+      <!-- B/L & Shipping -->
+      <div class="doc-item"><div class="doc-icon">🚢</div><div class="doc-name">BL-7041 Bill of Lading – Ever Glory</div><div class="doc-meta">25 Jun 2025 · CIF Keelung</div><span class="doc-tag delivery">Shipping</span></div>
+      <div class="doc-item"><div class="doc-icon">📄</div><div class="doc-name">DN-LP-7041 Delivery Note</div><div class="doc-meta">Formosa Heavy Ind. · 04 Jul 2025</div><span class="doc-tag delivery">Delivery Note</span></div>
+      <div class="doc-item"><div class="doc-icon">📄</div><div class="doc-name">DN-LP-7039 Delivery Note Draft</div><div class="doc-meta">Pacific Metals · 15 Jul 2025</div><span class="doc-tag delivery">Delivery Note</span></div>
+      <!-- Reports -->
+      <div class="doc-item"><div class="doc-icon">📊</div><div class="doc-name">Q2-2025 Procurement Summary Report</div><div class="doc-meta">Lead Pacific Internal · Jun 2025</div><span class="doc-tag report">Report</span></div>
+      <div class="doc-item"><div class="doc-icon">📊</div><div class="doc-name">LME Aluminium Price Index Jun 2025</div><div class="doc-meta">Monthly reference</div><span class="doc-tag report">Market Data</span></div>
+      <!-- Packing Lists -->
+      <div class="doc-item"><div class="doc-icon">📦</div><div class="doc-name">PKL-7041 Packing List</div><div class="doc-meta">12 pallets · 8,000 kg</div><span class="doc-tag delivery">Packing List</span></div>
+      <div id="dyn-doc-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 5: COMMUNICATIONS & TRANSACTIONS ══════════════════════ -->
+<div class="panel-full" id="tab-comms" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Communications, Transactions &amp; Data Management</div>
+      <div class="rt-sub">Communicate with clients and manufacturers · Organise, file and maintain all transaction data and documents</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openCommsModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Log Contact
+      </button>
+    </div>
+  </div>
+  <div class="comms-body">
+    <div class="comms-left">
+      <div class="section-header" style="padding:16px 18px 10px;">Contacts <span class="req-badge r3">Relationship Health</span></div>
+      <div style="padding:10px 14px; display:flex; flex-direction:column; gap:6px;">
+        <div class="prog-item">
+          <div class="prog-name">China Steel Corp. (Manufacturer)</div>
+          <div class="prog-meta">Last contact: 2 days ago · Phone call</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:88%;background:var(--green);"></div></div>
+          <div class="prog-pct" style="color:var(--green);">88% — Strong relationship</div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-name">Formosa Heavy Ind. (Client)</div>
+          <div class="prog-meta">Last contact: 4 days ago · Email</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:75%;background:var(--orange);"></div></div>
+          <div class="prog-pct" style="color:var(--orange);">75% — Good standing</div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-name">Pacific Metals Co. (Client)</div>
+          <div class="prog-meta">Last contact: 1 week ago · Email</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:55%;background:var(--amber);"></div></div>
+          <div class="prog-pct" style="color:var(--amber);">55% — Follow-up needed</div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-name">Novelis Taiwan (Manufacturer)</div>
+          <div class="prog-meta">Last contact: 2 weeks ago · Video call</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:62%;background:var(--orange);"></div></div>
+          <div class="prog-pct" style="color:var(--orange);">62% — Progressing</div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-name">Taiwan Extrusion Ltd. (Client)</div>
+          <div class="prog-meta">Last contact: 3 weeks ago · Meeting</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:35%;background:var(--red);"></div></div>
+          <div class="prog-pct" style="color:var(--red);">35% — Needs re-engagement</div>
+        </div>
+        <div id="dyn-comms-list"></div>
+      </div>
+    </div>
+    <div class="comms-right">
+
+      <div class="section-div">Communication Log</div>
+
+      <div class="comms-card">
+        <div class="comms-avatar">CS</div>
+        <div style="flex:1">
+          <div class="comms-supplier">China Steel Corp. — Mr. Wang Jiaming (Sales Dir.)</div>
+          <div class="comms-last">Confirmed shipment schedule for SHP-LP-7041. Bill of lading to be issued 25 Jun. Requested pre-shipment inspection certificate from SGS by 24 Jun.</div>
+          <div class="comms-tags">
+            <span class="comms-tag call">📞 Call</span>
+            <span class="comms-tag resolved">✅ Resolved</span>
+            <span class="comms-tag coord">🔗 Coordination</span>
+          </div>
+        </div>
+        <div class="comms-time">2 days ago</div>
+      </div>
+
+      <div class="comms-card">
+        <div class="comms-avatar">FH</div>
+        <div style="flex:1">
+          <div class="comms-supplier">Formosa Heavy Ind. — Ms. Chang Mei-Ling (Procurement)</div>
+          <div class="comms-last">Client requested revised delivery note for PO-7041 with updated truck number. Also inquired about adding 500 kg 6063 extrusion to the next order cycle.</div>
+          <div class="comms-tags">
+            <span class="comms-tag email">📧 Email</span>
+            <span class="comms-tag coord">🔗 Follow-up needed</span>
+          </div>
+        </div>
+        <div class="comms-time">4 days ago</div>
+      </div>
+
+      <div class="comms-card">
+        <div class="comms-avatar">NT</div>
+        <div style="flex:1">
+          <div class="comms-supplier">Novelis Taiwan — Kevin Hsu (Account Manager)</div>
+          <div class="comms-last">Video call to negotiate pricing on 7075 and 2024 alloy. LME premium under discussion — Novelis proposed +8%, Lead Pacific countered +6%. Legal review pending.</div>
+          <div class="comms-tags">
+            <span class="comms-tag call">📹 Video Call</span>
+            <span class="comms-tag complaint">⚠️ Negotiation</span>
+          </div>
+        </div>
+        <div class="comms-time">2 weeks ago</div>
+      </div>
+
+      <div class="section-div">Transaction Data &amp; Issue Tracker</div>
+
+      <!-- Transaction summary -->
+      <div class="quote-table-wrapper">
+        <div class="quote-table-header">
+          <div>
+            <div class="quote-table-title">Transaction Register — Jun/Jul 2025</div>
+            <div class="quote-table-sub">All financial transactions filed and maintained</div>
+          </div>
+        </div>
+        <table class="qt">
+          <thead><tr><th>Ref.</th><th>Party</th><th>Type</th><th>Amount (NT$)</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="bold">TXN-7041-A</td><td>China Steel Corp.</td><td>30% Deposit — PO-7041</td><td class="num">$372,000</td><td>14 Jun 25</td><td><span class="status-chip confirmed">Paid</span></td></tr>
+            <tr><td class="bold">TXN-7041-B</td><td>China Steel Corp.</td><td>70% Balance — PO-7041</td><td class="num">$868,000</td><td>24 Jun 25</td><td><span class="status-chip confirmed">Paid</span></td></tr>
+            <tr><td class="bold">TXN-7039-A</td><td>Hindalco Industries</td><td>30% Deposit — PO-7039</td><td class="num">$261,000</td><td>06 Jun 25</td><td><span class="status-chip confirmed">Paid</span></td></tr>
+            <tr><td class="bold">TXN-7039-B</td><td>Hindalco Industries</td><td>70% Balance — PO-7039</td><td class="num">$609,000</td><td>Due 27 Jun</td><td><span class="status-chip pending">Due Soon</span></td></tr>
+            <tr><td class="bold">TXN-7035-A</td><td>Trimet Aluminium SE</td><td>L/C at sight — PO-7035</td><td class="num">$2,310,000</td><td>Due on BL</td><td><span class="status-chip review">L/C Open</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="complaint-section">
+        <div class="cs-header">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round"><path d="M7 1L13 12H1L7 1z"/><path d="M7 5v4M7 10.5v.5"/></svg>
+          <div class="cs-title">Open Issues &amp; Client Complaints</div>
+        </div>
+        <div class="cs-entry">
+          <div class="cs-dot open"></div>
+          <div class="cs-body">
+            <div class="cs-who">OPEN — Pacific Metals Co.</div>
+            <div class="cs-desc">Client reported that batch HIN-2506-B mill certificate is missing hardness test data. Cannot proceed to production until ASTM E18 hardness report confirmed from Hindalco.</div>
+            <div class="cs-meta">Logged: 26 Jun 2025 · Priority: High · Assigned: Lead Pacific Procurement</div>
+          </div>
+        </div>
+        <div class="cs-entry">
+          <div class="cs-dot resolved"></div>
+          <div class="cs-body">
+            <div class="cs-who">RESOLVED — Formosa Heavy Industries</div>
+            <div class="cs-desc">Delivery truck LPT-02 arrived 2 hours late due to traffic. Client issued formal complaint. Rescheduled and compensated with a 0.5% credit on next order.</div>
+            <div class="cs-meta">Resolved: 20 Jun 2025 · Credit issued · Case closed</div>
+          </div>
+        </div>
+        <div id="dyn-complaint-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 6: SUPERVISOR TASKS ══════════════════════ -->
+<div class="panel-full" id="tab-tasks" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Supervisor Tasks — Assigned Work Log</div>
+      <div class="rt-sub">Log and complete tasks assigned by the supervisor · Track progress, priority, and deadlines</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openTaskModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Log New Task
+      </button>
+    </div>
+  </div>
+  <div style="flex:1; display:flex; overflow:hidden;">
+
+    <aside class="left-panel">
+      <div class="panel-section">
+        <div class="section-header">Task Summary <span class="req-badge r1">This Week</span></div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Tasks</div>
+            <div class="kpi-value" id="task-total">8</div>
+            <div class="kpi-sub">Assigned by supervisor</div>
+          </div>
+          <div class="kpi-card g">
+            <div class="kpi-label">Completed</div>
+            <div class="kpi-value" id="task-done">3</div>
+            <div class="kpi-sub">Closed this week</div>
+          </div>
+          <div class="kpi-card a">
+            <div class="kpi-label">In Progress</div>
+            <div class="kpi-value" id="task-prog">4</div>
+            <div class="kpi-sub">Ongoing</div>
+          </div>
+          <div class="kpi-card r">
+            <div class="kpi-label">Overdue</div>
+            <div class="kpi-value" id="task-over">1</div>
+            <div class="kpi-sub">Needs attention</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-header">Completion Rate <span class="req-badge r3">Progress</span></div>
+        <div style="padding:12px 18px 16px;">
+          <div style="height:8px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+            <div id="task-progress-bar" style="height:100%;background:var(--orange);border-radius:6px;width:37.5%;transition:width .4s;"></div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--orange);" id="task-pct-label">37.5% complete</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Click the checkbox on any task to mark it done</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-header">Priority Filter <span class="req-badge r2">Filter</span></div>
+        <div style="padding:8px 18px 14px; display:flex; flex-direction:column; gap:6px;">
+          <button class="btn-outline" style="justify-content:flex-start; gap:8px;" onclick="filterTasks('all')">📋 All Tasks</button>
+          <button class="btn-outline" style="justify-content:flex-start; gap:8px;" onclick="filterTasks('urgent')">🔴 Urgent Only</button>
+          <button class="btn-outline" style="justify-content:flex-start; gap:8px;" onclick="filterTasks('normal')">🟠 Normal Priority</button>
+          <button class="btn-outline" style="justify-content:flex-start; gap:8px;" onclick="filterTasks('routine')">🟢 Routine Only</button>
+          <button class="btn-outline" style="justify-content:flex-start; gap:8px;" onclick="filterTasks('open')">⬜ Open Tasks</button>
+        </div>
+      </div>
+    </aside>
+
+    <div style="flex:1; overflow-y:auto; padding:18px 22px;">
+
+      <div class="section-div">Urgent &amp; High Priority</div>
+      <div id="task-list-urgent">
+
+        <div class="task-item" data-priority="urgent" data-done="false">
+          <div class="task-check" onclick="toggleTask(this)"></div>
+          <div class="task-body">
+            <div class="task-title">Obtain Hindalco hardness test report for batch HIN-2506-B</div>
+            <div class="task-desc">Pacific Metals cannot start production without ASTM E18 hardness data. Contact Hindalco QA team and request supplementary mill cert within 24 hours.</div>
+            <div class="task-footer">
+              <span class="task-badge urgent">Urgent</span>
+              <span class="task-due">Due: 30 Jun 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-item" data-priority="urgent" data-done="false">
+          <div class="task-check" onclick="toggleTask(this)"></div>
+          <div class="task-body">
+            <div class="task-title">Follow up on NT$609,000 balance payment to Hindalco — due 27 Jun</div>
+            <div class="task-desc">Coordinate with finance to ensure TXN-7039-B wire transfer is submitted on time. Obtain payment confirmation receipt and file in transaction register.</div>
+            <div class="task-footer">
+              <span class="task-badge urgent">Urgent</span>
+              <span class="task-due">Due: 27 Jun 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-div" style="margin-top:8px;">Normal Priority</div>
+      <div id="task-list-normal">
+
+        <div class="task-item" data-priority="normal" data-done="false">
+          <div class="task-check" onclick="toggleTask(this)"></div>
+          <div class="task-body">
+            <div class="task-title">Prepare and issue delivery note DN-LP-7039 for Pacific Metals</div>
+            <div class="task-desc">Draft delivery note with correct truck schedule, contact, and material details. Submit to supervisor for review before dispatch.</div>
+            <div class="task-footer">
+              <span class="task-badge normal">Normal</span>
+              <span class="task-due">Due: 05 Jul 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-item" data-priority="normal" data-done="false">
+          <div class="task-check" onclick="toggleTask(this)"></div>
+          <div class="task-body">
+            <div class="task-title">Re-engage Taiwan Extrusion Ltd. — relationship at 35%</div>
+            <div class="task-desc">Schedule a call or meeting with Taiwan Extrusion to discuss upcoming billet requirements and confirm next order cycle. Log contact in the comms tracker.</div>
+            <div class="task-footer">
+              <span class="task-badge normal">Normal</span>
+              <span class="task-due">Due: 04 Jul 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-item" data-priority="normal" data-done="false">
+          <div class="task-check" onclick="toggleTask(this)"></div>
+          <div class="task-body">
+            <div class="task-title">Update LME Aluminium price index reference file for July 2025</div>
+            <div class="task-desc">Download latest LME settlement prices, update the Market Data document in the Document Vault, and circulate to the sales and procurement teams.</div>
+            <div class="task-footer">
+              <span class="task-badge normal">Normal</span>
+              <span class="task-due">Due: 01 Jul 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-item" data-priority="normal" data-done="true">
+          <div class="task-check done" onclick="toggleTask(this)">✓</div>
+          <div class="task-body">
+            <div class="task-title done-text">Submit Q2 Procurement Summary Report to supervisor</div>
+            <div class="task-desc">Full summary of all sourcing activity, contract values, and KPIs for April–June 2025.</div>
+            <div class="task-footer">
+              <span class="task-badge normal">Normal</span>
+              <span class="task-due">Completed: 25 Jun 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-div" style="margin-top:8px;">Routine Tasks</div>
+      <div id="task-list-routine">
+
+        <div class="task-item" data-priority="routine" data-done="true">
+          <div class="task-check done" onclick="toggleTask(this)">✓</div>
+          <div class="task-body">
+            <div class="task-title done-text">File and archive all June 2025 invoices in Document Vault</div>
+            <div class="task-desc">Ensure all commercial invoices, packing lists, and mill certificates for June shipments are uploaded and tagged correctly.</div>
+            <div class="task-footer">
+              <span class="task-badge routine">Routine</span>
+              <span class="task-due">Completed: 28 Jun 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-item" data-priority="routine" data-done="true">
+          <div class="task-check done" onclick="toggleTask(this)">✓</div>
+          <div class="task-body">
+            <div class="task-title done-text">Update client order tracker with latest PO confirmations</div>
+            <div class="task-desc">Synced kanban board with latest PO statuses from clients and filed revised order confirmations.</div>
+            <div class="task-footer">
+              <span class="task-badge routine">Routine</span>
+              <span class="task-due">Completed: 27 Jun 2025</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-item" data-priority="routine" data-done="false">
+          <div class="task-check" onclick="toggleTask(this)"></div>
+          <div class="task-body">
+            <div class="task-title">Prepare weekly procurement status summary for Monday morning meeting</div>
+            <div class="task-desc">One-page summary of all active shipments, open quotes, outstanding payments, and any issues. Submit to supervisor by Sunday 18:00.</div>
+            <div class="task-footer">
+              <span class="task-badge routine">Routine</span>
+              <span class="task-due">Due: Every Monday</span>
+              <span class="task-assign">Assigned by: Ms. Tan Supervisor</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="dyn-task-list"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="credit-bar">
+  <span>Lead Pacific</span>
+  <span class="credit-dot"></span>
+  <span class="credit-name">Aluminum &amp; Metal Supply Chain Management</span>
+  <span class="credit-dot"></span>
+  <span>Procurement Operations Portal</span>
+  <span class="credit-dot"></span>
+  <a href="tel:+886900167900">+886 900 167 900</a>
+</footer>
+
+<!-- ── MODAL: NEW CLIENT ORDER ── -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal">
+    <div class="modal-title">Add Client Order</div>
+    <div class="modal-sub">Track a new order from a Lead Pacific client — added to the pipeline board</div>
+    <div class="form-group">
+      <label class="form-label">Client / Company Name</label>
+      <input class="form-input" id="co-client" placeholder="e.g. Formosa Heavy Industries" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Material / Grade</label>
+        <select class="form-select" id="co-mat">
+          <option>6061-T6 Aluminium Sheet</option>
+          <option>5052 Aluminium Coil</option>
+          <option>7075 High-Strength Alloy</option>
+          <option>3003 Aluminium Sheet</option>
+          <option>2024 Aerospace Alloy</option>
+          <option>6063 Extrusion Billet</option>
+          <option>Primary Aluminium Ingot</option>
+          <option>Copper Rod / Strip</option>
+          <option>Stainless Steel Sheet</option>
+          <option>Other Metal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="co-priority">
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Order Value (NT$)</label>
+        <input class="form-input" id="co-value" type="number" placeholder="e.g. 1240000" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Required Delivery Date</label>
+        <input class="form-input" id="co-date" type="date" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes / Follow-up Actions</label>
+      <textarea class="form-textarea" id="co-notes" placeholder="Quantity, specs, special requirements, next action…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeClientModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitClientOrder()">Add to Pipeline</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: QUOTE ── -->
+<div class="modal-overlay" id="modal-quote">
+  <div class="modal">
+    <div class="modal-title">Log Manufacturer Quote</div>
+    <div class="modal-sub">Record a quote obtained from a manufacturer — track pricing, validity, and status</div>
+    <div class="form-group">
+      <label class="form-label">Manufacturer Name</label>
+      <input class="form-input" id="q-supplier" placeholder="e.g. China Steel Corp." />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Material / Product</label>
+        <input class="form-input" id="q-product" placeholder="e.g. 6061-T6 Sheet · 2mm" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quote Value (NT$)</label>
+        <input class="form-input" id="q-value" type="number" placeholder="e.g. 1240000" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valid Until</label>
+        <input class="form-input" id="q-expiry" type="date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="q-status">
+          <option value="pending">Pending Review</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="review">In Negotiation</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="q-notes" placeholder="Key terms, price basis (LME+), incoterms, payment terms, next step…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeQuoteModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitQuote()">Save Quote</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: ADD SHIPMENT ── -->
+<div class="modal-overlay" id="modal-ship">
+  <div class="modal">
+    <div class="modal-title">Add Shipment</div>
+    <div class="modal-sub">Log a new inbound or outbound shipment for tracking</div>
+    <div class="form-group">
+      <label class="form-label">Manufacturer (Origin)</label>
+      <input class="form-input" id="sh-mfr" placeholder="e.g. China Steel Corp." />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Client (Destination)</label>
+        <input class="form-input" id="sh-client" placeholder="e.g. Formosa Heavy Ind." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Material</label>
+        <input class="form-input" id="sh-mat" placeholder="e.g. 6061-T6 Sheet · 5,000 kg" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Shipping Method</label>
+        <select class="form-select" id="sh-method">
+          <option>Sea Freight (FCL)</option>
+          <option>Sea Freight (LCL)</option>
+          <option>Air Freight</option>
+          <option>Land / Road Freight</option>
+          <option>Ex-Works Pickup</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ETA</label>
+        <input class="form-input" id="sh-eta" type="date" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes / Vessel / Tracking</label>
+      <textarea class="form-textarea" id="sh-notes" placeholder="Vessel name, B/L number, port info, special instructions…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeShipModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitShipment()">Add Shipment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: COMMS ── -->
+<div class="modal-overlay" id="modal-comms">
+  <div class="modal">
+    <div class="modal-title">Log Contact / Communication</div>
+    <div class="modal-sub">Record a communication with a client or manufacturer — keeps the transaction history complete</div>
+    <div class="form-group">
+      <label class="form-label">Company Name (Client or Manufacturer)</label>
+      <input class="form-input" id="c-supplier" placeholder="e.g. China Steel Corp. or Formosa Heavy Ind." />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Contact Person</label>
+        <input class="form-input" id="c-contact" placeholder="Name &amp; role" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="c-type">
+          <option>Phone Call</option>
+          <option>Email</option>
+          <option>Video Call</option>
+          <option>In-Person Meeting</option>
+          <option>WhatsApp / Line</option>
+          <option>Complaint Filed</option>
+          <option>Complaint Resolved</option>
+          <option>Order Confirmed</option>
+          <option>Payment Confirmed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Summary / Notes</label>
+      <textarea class="form-textarea" id="c-summary" placeholder="What was discussed, agreed, or actioned…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCommsModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitComms()">Log Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: UPLOAD DOC ── -->
+<div class="modal-overlay" id="modal-doc">
+  <div class="modal">
+    <div class="modal-title">Upload / Register Document</div>
+    <div class="modal-sub">Add a document to the Lead Pacific Document Vault</div>
+    <div class="form-group">
+      <label class="form-label">Document Name / Title</label>
+      <input class="form-input" id="d-name" placeholder="e.g. INV-CSC-7042 Commercial Invoice" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Document Type</label>
+        <select class="form-select" id="d-type">
+          <option value="contract">Contract / Agreement</option>
+          <option value="invoice">Invoice / Proforma</option>
+          <option value="cert">Mill Certificate / Test Report</option>
+          <option value="delivery">Delivery Note / Packing List</option>
+          <option value="delivery">Bill of Lading</option>
+          <option value="report">Report / Market Data</option>
+          <option value="report">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Related Order / Ref.</label>
+        <input class="form-input" id="d-ref" placeholder="e.g. PO-7041 or SHP-LP-7041" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="d-notes" placeholder="Additional context — party name, date, version, etc."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDocModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitDoc()">Register Document</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: ADD TASK ── -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-title">Log Supervisor Task</div>
+    <div class="modal-sub">Record a task assigned by the supervisor — track it to completion</div>
+    <div class="form-group">
+      <label class="form-label">Task Title</label>
+      <input class="form-input" id="t-title" placeholder="Short task description" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="t-priority">
+          <option value="urgent">Urgent</option>
+          <option value="normal" selected>Normal</option>
+          <option value="routine">Routine</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date</label>
+        <input class="form-input" id="t-due" type="date" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Assigned By</label>
+        <input class="form-input" id="t-assigned" placeholder="Supervisor name" value="Ms. Tan Supervisor" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Details / Instructions</label>
+      <textarea class="form-textarea" id="t-desc" placeholder="Full task description and any relevant instructions…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CLOCK ──
+function updateClock(){
+  const t=new Date();
+  document.getElementById('clock').textContent=t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+// ── TAB SWITCH ──
+function switchTab(id){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-tab="'+id+'"]').classList.add('active');
+  document.querySelectorAll('.panel,.panel-full').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ── UTILS ──
+function escHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+// ── DRAG & DROP ──
+function dragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+
+// ── CLIENT PIPELINE ──
+let clientCounter=0, draggingClientId=null;
+
+function renderClientCard(order){
+  const card=document.createElement('div');
+  card.className='issue-card';
+  card.dataset.id=order.id;
+  card.dataset.priority=order.priority;
+  card.draggable=true;
+  card.innerHTML=`
+    <div class="ic-top">
+      <span class="ic-id">ORD-${String(order.id).padStart(4,'0')}</span>
+      <span class="ic-priority ${order.priority}">${order.priority}</span>
+    </div>
+    <span class="ic-type-tag">${escHtml(order.material)}</span>
+    <div class="ic-title">${escHtml(order.client)} — ${escHtml(order.notes||'')}</div>
+    <div class="ic-meta">
+      <span>💰 NT$ ${Number(order.value||0).toLocaleString()}</span>
+      <span>📅 ${order.date||'—'}</span>
+    </div>`;
+  card.addEventListener('dragstart',()=>{ draggingClientId=order.id; card.classList.add('dragging'); });
+  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggingClientId=null; });
+  return card;
+}
+
+function placeClient(order){
+  const drop=document.getElementById('drop-c-'+order.status);
+  if(drop) drop.appendChild(renderClientCard(order));
+  updateClientCounts();
+}
+
+function updateClientCounts(){
+  ['new','contacted','negotiating','approved'].forEach(col=>{
+    const el=document.getElementById('cnt-c-'+col);
+    if(el) el.textContent=document.getElementById('drop-c-'+col).children.length;
+  });
+  const open=['new','contacted','negotiating'].reduce((a,c)=>a+document.getElementById('drop-c-'+c).children.length,0);
+  const el=document.getElementById('open-client-count');
+  if(el) el.textContent=open;
+}
+
+function dropClient(e,col){
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if(draggingClientId===null) return;
+  const card=document.querySelector(`[data-id="${draggingClientId}"]`);
+  if(!card) return;
+  document.getElementById('drop-c-'+col).appendChild(card);
+  updateClientCounts();
+  const labels={new:'New Order',contacted:'Processing',negotiating:'Shipped/In Transit',approved:'Delivered & Closed'};
+  addClientLog('MOVED',`ORD-${String(draggingClientId).padStart(4,'0')} → ${labels[col]}`);
+}
+
+function addClientLog(action,msg){
+  const log=document.getElementById('client-log'); if(!log) return;
+  const entry=document.createElement('div'); entry.className='log-entry';
+  const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  entry.innerHTML=`<span class="log-time">${t}</span><span class="log-action">${action}</span><span class="log-msg">${escHtml(msg)}</span>`;
+  log.prepend(entry);
+}
+
+function exportClientExcel(){
+  const rows=[];
+  const labels={new:'New Order',contacted:'Processing',negotiating:'Shipped/In Transit',approved:'Delivered & Closed'};
+  ['new','contacted','negotiating','approved'].forEach(col=>{
+    document.querySelectorAll('#drop-c-'+col+' .issue-card').forEach(card=>{
+      rows.push({'Order ID':card.querySelector('.ic-id').textContent,'Client':card.querySelector('.ic-title').textContent,'Material':card.querySelector('.ic-type-tag').textContent,'Priority':card.querySelector('.ic-priority').textContent,'Status':labels[col]});
+    });
+  });
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:10},{wch:40},{wch:25},{wch:10},{wch:25}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Client Orders');
+  XLSX.writeFile(wb,'LeadPacific_Client_Orders.xlsx');
+  addClientLog('EXPORT',`${rows.length} orders exported`);
+}
+
+function importClientExcel(evt){
+  const file=evt.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      const sheet=wb.Sheets[wb.SheetNames[0]];
+      const json=XLSX.utils.sheet_to_json(sheet);
+      if(!json.length) return;
+      ['new','contacted','negotiating','approved'].forEach(col=>{const el=document.getElementById('drop-c-'+col); if(el) el.innerHTML=''; });
+      clientCounter=0;
+      const sm={'new order':'new','new':'new','processing':'contacted','shipped':'negotiating','in transit':'negotiating','delivered':'approved','closed':'approved'};
+      json.forEach(row=>{
+        clientCounter++;
+        const rs=(row['Status']||'New Order').toString().trim().toLowerCase();
+        placeClient({id:clientCounter,client:row['Client']||row['Company']||'Unknown',material:row['Material']||'Aluminium',priority:(row['Priority']||'medium').toLowerCase(),value:row['Value']||0,date:row['Date']||'',notes:row['Notes']||'',status:sm[rs]||'new'});
+      });
+      document.getElementById('client-excel-status').textContent=`Loaded from "${file.name}" — ${json.length} orders`;
+      addClientLog('IMPORT',`${json.length} orders loaded from "${file.name}"`);
+    }catch(err){ addClientLog('ERROR','Could not read file — check column headers'); }
+  };
+  reader.readAsArrayBuffer(file); evt.target.value='';
+}
+
+// ── QUOTE MODAL ──
+function openQuoteModal(){ document.getElementById('modal-quote').classList.add('open'); }
+function closeQuoteModal(){ document.getElementById('modal-quote').classList.remove('open'); ['q-supplier','q-product','q-value','q-expiry','q-notes'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-quote').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeQuoteModal(); });
+function submitQuote(){
+  const sup=document.getElementById('q-supplier').value.trim(); if(!sup) return;
+  const val=document.getElementById('q-value').value;
+  const status=document.getElementById('q-status').value;
+  const item=document.createElement('div'); item.className='ql-item'; item.onclick=function(){ selectQuote(this); };
+  item.innerHTML=`<div class="ql-name">${escHtml(sup)}</div><div class="ql-type">${escHtml(document.getElementById('q-product').value)}</div><div class="ql-footer"><span class="status-chip ${status}">${status.charAt(0).toUpperCase()+status.slice(1)}</span><span style="font-size:10px;color:var(--muted);">NT$${Number(val||0).toLocaleString()}</span></div>`;
+  document.getElementById('quotes-supplier-list').appendChild(item);
+  closeQuoteModal();
+}
+function selectQuote(el){ document.querySelectorAll('.ql-item').forEach(i=>i.classList.remove('active')); el.classList.add('active'); }
+
+// ── CLIENT MODAL ──
+function openClientModal(){ document.getElementById('modal-client').classList.add('open'); document.getElementById('co-client').focus(); }
+function closeClientModal(){ document.getElementById('modal-client').classList.remove('open'); ['co-client','co-value','co-date','co-notes'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-client').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeClientModal(); });
+function submitClientOrder(){
+  const client=document.getElementById('co-client').value.trim(); if(!client) return;
+  clientCounter++;
+  const order={id:clientCounter,client,material:document.getElementById('co-mat').value,priority:document.getElementById('co-priority').value,value:document.getElementById('co-value').value,date:document.getElementById('co-date').value,notes:document.getElementById('co-notes').value.trim(),status:'new'};
+  placeClient(order);
+  addClientLog('ADDED',`ORD-${String(clientCounter).padStart(4,'0')} — ${client}`);
+  closeClientModal();
+}
+
+// ── SHIPMENT MODAL ──
+function openShipModal(){ document.getElementById('modal-ship').classList.add('open'); }
+function closeShipModal(){ document.getElementById('modal-ship').classList.remove('open'); ['sh-mfr','sh-client','sh-mat','sh-eta','sh-notes'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-ship').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeShipModal(); });
+function submitShipment(){
+  const mfr=document.getElementById('sh-mfr').value.trim(); if(!mfr) return;
+  const client=document.getElementById('sh-client').value.trim();
+  const mat=document.getElementById('sh-mat').value.trim();
+  const eta=document.getElementById('sh-eta').value;
+  const method=document.getElementById('sh-method').value;
+  const notes=document.getElementById('sh-notes').value.trim();
+  const card=document.createElement('div'); card.className='ship-track-card';
+  card.innerHTML=`<div class="ship-track-head"><div><div class="ship-track-id">NEW · ${escHtml(mfr)} → ${escHtml(client)}</div><div class="ship-track-sub">${escHtml(mat)} · ETA: <strong>${eta||'TBD'}</strong> · ${escHtml(method)} · ${escHtml(notes)}</div></div><span class="status-chip pending">Booked</span></div><div class="ship-steps"><div class="ship-step active"><div class="ship-dot">▶</div><div class="ship-label">Order Placed</div></div><div class="ship-step"><div class="ship-dot">2</div><div class="ship-label">Production</div></div><div class="ship-step"><div class="ship-dot">3</div><div class="ship-label">Departed</div></div><div class="ship-step"><div class="ship-dot">4</div><div class="ship-label">At Sea</div></div><div class="ship-step"><div class="ship-dot">5</div><div class="ship-label">Port Arrival</div><div class="ship-date">${eta||'TBD'}</div></div><div class="ship-step"><div class="ship-dot">6</div><div class="ship-label">Customs</div></div><div class="ship-step"><div class="ship-dot">7</div><div class="ship-label">Delivered</div></div></div>`;
+  document.getElementById('dyn-ship-list').appendChild(card);
+  closeShipModal();
+}
+
+// ── DOC MODAL ──
+function openDocModal(){ document.getElementById('modal-doc').classList.add('open'); }
+function closeDocModal(){ document.getElementById('modal-doc').classList.remove('open'); ['d-name','d-ref','d-notes'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-doc').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeDocModal(); });
+function submitDoc(){
+  const name=document.getElementById('d-name').value.trim(); if(!name) return;
+  const type=document.getElementById('d-type').value;
+  const ref=document.getElementById('d-ref').value.trim();
+  const icons={contract:'📃',invoice:'🧾',cert:'📋',delivery:'📄',report:'📊'};
+  const icon=icons[type]||'📁';
+  const item=document.createElement('div'); item.className='doc-item';
+  item.innerHTML=`<div class="doc-icon">${icon}</div><div class="doc-name">${escHtml(name)}</div><div class="doc-meta">${escHtml(ref)||'No ref'} · Just now</div><span class="doc-tag ${type}">${type.charAt(0).toUpperCase()+type.slice(1)}</span>`;
+  document.getElementById('dyn-doc-list').before(item);
+  closeDocModal();
+}
+
+// ── COMMS MODAL ──
+function openCommsModal(){ document.getElementById('modal-comms').classList.add('open'); }
+function closeCommsModal(){ document.getElementById('modal-comms').classList.remove('open'); ['c-supplier','c-contact','c-summary'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-comms').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeCommsModal(); });
+function submitComms(){
+  const sup=document.getElementById('c-supplier').value.trim(); if(!sup) return;
+  const type=document.getElementById('c-type').value;
+  const summary=document.getElementById('c-summary').value.trim();
+  const contact=document.getElementById('c-contact').value.trim();
+  const list=document.getElementById('dyn-comms-list');
+  const card=document.createElement('div'); card.className='comms-card';
+  const initials=sup.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const tagClass=type.includes('Complaint')?'complaint':type.includes('Email')?'email':type.includes('Video')?'call':'call';
+  card.innerHTML=`<div class="comms-avatar">${initials}</div><div style="flex:1"><div class="comms-supplier">${escHtml(sup)}${contact?' — '+escHtml(contact):''}</div><div class="comms-last">${escHtml(summary)||'No summary.'}</div><div class="comms-tags"><span class="comms-tag ${tagClass}">${escHtml(type)}</span></div></div><div class="comms-time">Just now</div>`;
+  // Insert at top of comms-right
+  const right=document.querySelector('.comms-right');
+  const firstCard=right.querySelector('.comms-card');
+  if(firstCard) right.insertBefore(card,firstCard); else right.prepend(card);
+  list.appendChild(card.cloneNode(true));
+  // Also add to progress list
+  const prog=document.createElement('div'); prog.className='prog-item';
+  prog.innerHTML=`<div class="prog-name">${escHtml(sup)}</div><div class="prog-meta">Just now · ${escHtml(type)}</div><div class="prog-bar"><div class="prog-fill" style="width:50%;background:var(--orange);"></div></div><div class="prog-pct" style="color:var(--orange);">50% — New contact</div>`;
+  document.getElementById('dyn-comms-list').appendChild(prog);
+  closeCommsModal();
+}
+
+// ── TASK MODAL & LOGIC ──
+function openTaskModal(){ document.getElementById('modal-task').classList.add('open'); document.getElementById('t-title').focus(); }
+function closeTaskModal(){ document.getElementById('modal-task').classList.remove('open'); ['t-title','t-due','t-desc'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-task').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeTaskModal(); });
+
+function submitTask(){
+  const title=document.getElementById('t-title').value.trim(); if(!title) return;
+  const priority=document.getElementById('t-priority').value;
+  const due=document.getElementById('t-due').value;
+  const desc=document.getElementById('t-desc').value.trim();
+  const assigned=document.getElementById('t-assigned').value.trim();
+  const item=document.createElement('div'); item.className='task-item'; item.dataset.priority=priority; item.dataset.done='false';
+  item.innerHTML=`<div class="task-check" onclick="toggleTask(this)"></div><div class="task-body"><div class="task-title">${escHtml(title)}</div><div class="task-desc">${escHtml(desc)}</div><div class="task-footer"><span class="task-badge ${priority}">${priority.charAt(0).toUpperCase()+priority.slice(1)}</span><span class="task-due">Due: ${due||'TBD'}</span><span class="task-assign">Assigned by: ${escHtml(assigned)}</span></div></div>`;
+  document.getElementById('dyn-task-list').appendChild(item);
+  updateTaskStats();
+  closeTaskModal();
+}
+
+function toggleTask(checkEl){
+  const item=checkEl.closest('.task-item');
+  const done=item.dataset.done==='true';
+  item.dataset.done=(!done).toString();
+  const titleEl=item.querySelector('.task-title');
+  if(!done){
+    checkEl.classList.add('done'); checkEl.textContent='✓';
+    titleEl.classList.add('done-text');
+  } else {
+    checkEl.classList.remove('done'); checkEl.textContent='';
+    titleEl.classList.remove('done-text');
+  }
+  updateTaskStats();
+}
+
+function updateTaskStats(){
+  const all=document.querySelectorAll('.task-item');
+  const total=all.length;
+  const done=[...all].filter(i=>i.dataset.done==='true').length;
+  const prog=total-done;
+  const pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('task-total').textContent=total;
+  document.getElementById('task-done').textContent=done;
+  document.getElementById('task-prog').textContent=prog;
+  document.getElementById('task-progress-bar').style.width=pct+'%';
+  document.getElementById('task-pct-label').textContent=pct+'% complete';
+}
+
+function filterTasks(type){
+  const all=document.querySelectorAll('.task-item');
+  all.forEach(item=>{
+    if(type==='all') item.style.display='';
+    else if(type==='open') item.style.display=item.dataset.done==='true'?'none':'';
+    else item.style.display=item.dataset.priority===type?'':'none';
+  });
+}
+
+// ── INITIAL CLIENT ORDERS ──
+const initOrders=[
+  {client:'Formosa Heavy Ind.',material:'6061-T6 Aluminium Sheet',priority:'high',value:1240000,date:'2025-07-04',notes:'8,000 kg · CIF Keelung · SHP-LP-7041 in transit',status:'negotiating'},
+  {client:'Pacific Metals Co.',material:'5052 Aluminium Coil',priority:'medium',value:870000,date:'2025-07-15',notes:'5,000 kg · Follow up on hardness cert issue',status:'contacted'},
+  {client:'Taiwan Extrusion Ltd.',material:'7075 Billet',priority:'critical',value:2310000,date:'2025-07-22',notes:'20 tonne · L/C under review · Production phase',status:'contacted'},
+  {client:'ShinKong Construction',material:'Aluminium Profile System',priority:'low',value:980000,date:'2025-06-29',notes:'Local delivery LPT-03 today',status:'approved'},
+  {client:'Nan Ya Plastics Group',material:'Copper Rod C11000',priority:'medium',value:590000,date:'',notes:'Awaiting final PO confirmation',status:'new'},
+];
+initOrders.forEach(o=>{ clientCounter++; o.id=clientCounter; placeClient(o); });
+updateTaskStats();
+addClientLog('LOAD','5 client orders loaded — Lead Pacific pipeline ready');
+</script>
+</body>
+</html>
